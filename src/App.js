@@ -1,23 +1,24 @@
-import logo from './logo.svg';
 import './App.css';
+import { nanoid } from 'nanoid';
+import React, { useState, useEffect } from 'react';
+import Interval from './components/Interval';
 
-function App() {
+function App(props) {
+  const [intervals, setIntervals] = useState(props.data);
+  const [isStop, setStop] = useState(true);
+
+  const intervalList = intervals.map((interval) => (
+    <Interval 
+      // id={interval.id}
+      // key={interval.key}
+      completed={interval.completed}
+    />
+  ));
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="App px-5">
+      <h1>Current Date</h1>
+      {intervalList}
     </div>
   );
 }
