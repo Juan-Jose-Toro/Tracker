@@ -19,7 +19,7 @@ export default function Interval(props) {
         setHeight(height + 1);
 
         const currentTime = newTime - initialTime;
-        const minutes = Math.floor(currentTime / 60000);
+        const minutes = Math.floor(currentTime / 60000 % 60);
         const hours = Math.floor(currentTime / 3600000);
         setEnlapsedTimeString(`${hours}h${minutes}m`);
       }, 1000);
@@ -27,7 +27,7 @@ export default function Interval(props) {
     }
   });
 
-  return (
+  const initialTimerTemplate = (
     <div>
       {initialTime.toLocaleTimeString('en-GB')}
       <div
@@ -45,6 +45,32 @@ export default function Interval(props) {
         {enlapsedTimeString}
       </div>
       {currentTime.toLocaleTimeString('en-GB')}
+    </div>
+  );
+
+  const noInitialTimerTemplate = (
+    <div>
+      <div
+        className='bg-black text-white rounded-md flex justify-between p-4'
+        style={{height: `${Math.floor(height/4) + 60}px`}}
+      >
+        <div
+          className='bg-black text-white w-full mr-5 overflow-auto no-scrollbar outline-none'
+          contentEditable="true"
+          onChange={handleChange}
+          value={description}
+          placeholder="Activity"
+        >
+        </div>
+        {enlapsedTimeString}
+      </div>
+      {currentTime.toLocaleTimeString('en-GB')}
+    </div>
+  );
+
+  return (
+    <div>
+      {props.hasIntialTimer ? initialTimerTemplate : noInitialTimerTemplate}
     </div>
   );
 }
