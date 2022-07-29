@@ -1,14 +1,22 @@
 import React, { useState, useEffect } from 'react';
 
 export default function Interval(props) {
-  const [initialTime] = useState(new Date());
-  const [description, setDescription] = useState('');
-  const [currentTime, setCurrentTime] = useState(new Date())
-  const [enlapsedTimeString, setEnlapsedTimeString] = useState('0h0m');
+  // There should be an easier way to start all this info
+  const [initialTime] = useState(new Date(props.initialTime));
+  const [description, setDescription] = useState(props.description);
+  const [currentTime, setCurrentTime] = useState(props.currentTime ? new Date(props.currentTime) : new Date());
+  const [enlapsedTimeString, setEnlapsedTimeString] = useState(() => {
+    const newTime = props.currentTime ? new Date(props.currentTime) : new Date();   // Fix
+    const currentTime = newTime - initialTime;
+    const minutes = Math.floor(currentTime / 60000 % 60);
+    const hours = Math.floor(currentTime / 3600000);
+    return `${hours}h${minutes}m`;
+  });
   const [height, setHeight] = useState(0);
 
-  function handleChange(e) {
-    setDescription(e.target.value);
+  function handleInput(e) {
+    setDescription(e.currentTarget.textContent);
+    props.updateIntervalData(props.id, currentTime.getTime(), description);
   }
 
   useEffect(() => {
@@ -27,20 +35,25 @@ export default function Interval(props) {
     }
   });
 
+  useEffect(() => {
+    console.log(description);
+    props.updateIntervalData(props.id, currentTime.getTime(), description);
+  }, [props.completed, description]) // Fix
+
   const initialTimerTemplate = (
     <div>
       {initialTime.toLocaleTimeString('en-GB')}
       <div
-        className='bg-black text-white rounded-md flex justify-between p-4'
-        style={{height: `${Math.floor(height/4) + 60}px`}}
+        className='bg-black text-white rounded-md flex justify-between py-3 px-4'
+        style={{height: `${Math.floor(height/60) + 50}px`}}
       >
         <div
           className='bg-black text-white w-full mr-5 overflow-auto no-scrollbar outline-none'
           contentEditable="true"
-          onChange={handleChange}
-          value={description}
+          onInput={handleInput}
           placeholder="Activity"
         >
+        {description}
         </div>
         {enlapsedTimeString}
       </div>
@@ -51,16 +64,16 @@ export default function Interval(props) {
   const noInitialTimerTemplate = (
     <div>
       <div
-        className='bg-black text-white rounded-md flex justify-between p-4'
-        style={{height: `${Math.floor(height/4) + 60}px`}}
+        className='bg-black text-white rounded-md flex justify-between py-3 px-4'
+        style={{height: `${Math.floor(height/60) + 50}px`}}
       >
         <div
           className='bg-black text-white w-full mr-5 overflow-auto no-scrollbar outline-none'
           contentEditable="true"
-          onChange={handleChange}
-          value={description}
+          onInput={handleInput}
           placeholder="Activity"
         >
+        {description}
         </div>
         {enlapsedTimeString}
       </div>
