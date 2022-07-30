@@ -6,6 +6,8 @@ export default function Interval(props) {
   const [description, setDescription] = useState(props.description);
   const [currentTime, setCurrentTime] = useState(props.currentTime ? new Date(props.currentTime) : new Date());
   const [enlapsedTimeString, setEnlapsedTimeString] = useState(() => {
+    // Intial state of enlapsedTimeString is calculated using epoch
+    // [] Change implementation so that we only worry about display xHxM on the div
     const newTime = props.currentTime ? new Date(props.currentTime) : new Date();   // Fix
     const currentTime = newTime - initialTime;
     const minutes = Math.floor(currentTime / 60000 % 60);
@@ -16,8 +18,9 @@ export default function Interval(props) {
 
   function handleInput(e) {
     setDescription(e.currentTarget.textContent);
-    props.updateIntervalData(props.id, currentTime.getTime(), description);
+    // props.updateIntervalData(props.id, currentTime.getTime(), description);
   }
+
 
   useEffect(() => {
     if (!props.completed) {
@@ -36,8 +39,7 @@ export default function Interval(props) {
   });
 
   useEffect(() => {
-    console.log(description);
-    props.updateIntervalData(props.id, currentTime.getTime(), description);
+    // props.updateIntervalData(props.id, currentTime.getTime(), description);
   }, [props.completed, description]) // Fix
 
   const initialTimerTemplate = (
