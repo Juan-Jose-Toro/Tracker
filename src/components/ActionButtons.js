@@ -5,6 +5,7 @@ export default function ActionButtons(props) {
     <div className='flex justify-between'>
       <button onClick={() => props.startInterval()}> Start </button>
       <button onClick={() => props.stopInterval()}> Stop </button>
+      <button onClick={() => props.clearIntervals()}> Clear </button>
     </div>
   );
 }

@@ -8,19 +8,24 @@ export default function Interval(props) {
   const [enlapsedTimeString, setEnlapsedTimeString] = useState(() => {
     // Intial state of enlapsedTimeString is calculated using epoch
     // [] Change implementation so that we only worry about display xHxM on the div
-    const newTime = props.currentTime ? new Date(props.currentTime) : new Date();   // Fix
+    const newTime = (props.currentTime ? new Date(props.currentTime) : new Date());   // Fix
     const currentTime = newTime - initialTime;
     const minutes = Math.floor(currentTime / 60000 % 60);
     const hours = Math.floor(currentTime / 3600000);
     return `${hours}h${minutes}m`;
   });
-  const [height, setHeight] = useState(0);
+  const [height, setHeight] = useState(calculateHeight());
 
-  function handleInput(e) {
-    setDescription(e.currentTarget.textContent);
-    // props.updateIntervalData(props.id, currentTime.getTime(), description);
+  function handleChange(e) {
+    setDescription(e.target.value);
   }
 
+  function calculateHeight() {
+    const newTime = (props.currentTime ? new Date(props.currentTime) : new Date());
+    const currentTime = newTime - initialTime;
+    const height = Math.floor(currentTime / 1000);
+    return height;
+  }
 
   useEffect(() => {
     if (!props.completed) {
@@ -39,53 +44,25 @@ export default function Interval(props) {
   });
 
   useEffect(() => {
-    // props.updateIntervalData(props.id, currentTime.getTime(), description);
-  }, [props.completed, description]) // Fix
-
-  const initialTimerTemplate = (
-    <div>
-      {initialTime.toLocaleTimeString('en-GB')}
-      <div
-        className='bg-black text-white rounded-md flex justify-between py-3 px-4'
-        style={{height: `${Math.floor(height/60) + 50}px`}}
-      >
-        <div
-          className='bg-black text-white w-full mr-5 overflow-auto no-scrollbar outline-none'
-          contentEditable="true"
-          onInput={handleInput}
-          placeholder="Activity"
-        >
-        {description}
-        </div>
-        {enlapsedTimeString}
-      </div>
-      {currentTime.toLocaleTimeString('en-GB')}
-    </div>
-  );
-
-  const noInitialTimerTemplate = (
-    <div>
-      <div
-        className='bg-black text-white rounded-md flex justify-between py-3 px-4'
-        style={{height: `${Math.floor(height/60) + 50}px`}}
-      >
-        <div
-          className='bg-black text-white w-full mr-5 overflow-auto no-scrollbar outline-none'
-          contentEditable="true"
-          onInput={handleInput}
-          placeholder="Activity"
-        >
-        {description}
-        </div>
-        {enlapsedTimeString}
-      </div>
-      {currentTime.toLocaleTimeString('en-GB')}
-    </div>
-  );
+    props.updateIntervalData(props.id, currentTime.getTime(), description);
+  }, [props.completed, description, currentTime]) // Fix
 
   return (
     <div>
-      {props.hasIntialTimer ? initialTimerTemplate : noInitialTimerTemplate}
+      {props.hasIntialTimer ? initialTime.toLocaleTimeString('en-GB') : ''}
+      <div
+        className='bg-black text-white rounded-md flex justify-between py-3 px-4'
+        style={{height: `${Math.floor(height/60) + 50}px`}}
+      >
+        <textarea
+          className='bg-black text-white w-full mr-5 overflow-auto no-scrollbar outline-none resize-none'
+          onChange={handleChange}
+          placeholder="Activity"
+          value={description}
+        />
+        {enlapsedTimeString}
+      </div>
+      {currentTime.toLocaleTimeString('en-GB')}
     </div>
   );
 }

@@ -7,9 +7,12 @@ import ActionButtons from './components/ActionButtons'
 function App() {
   const [intervals, setIntervals] = useState(() => {
     const localData = localStorage.getItem('data');
-    return localData ? JSON.parse(localData) : [];
+    return JSON.parse(localData || '[]');
   });
-  const [isStop, setStop] = useState(true);
+  const [isStop, setStop] = useState(() => {
+    const localIsStop = localStorage.getItem('isStop');
+    return JSON.parse(localIsStop || 'true');
+  });
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
   const curDate = new Date().toLocaleDateString('en-US', options);
 
@@ -56,9 +59,15 @@ function App() {
     setIntervals(editedIntervals);
   }
 
+  function clearIntervals() {
+    setIntervals([]);
+    setStop(true);
+  }
+
   useEffect(() => {
     localStorage.setItem('data', JSON.stringify(intervals));
-  }, [intervals]);
+    localStorage.setItem('isStop', JSON.stringify(isStop));
+  }, [intervals, isStop]); // Could split
 
   const intervalList = intervals.map((interval) => (
     <Interval 
@@ -80,6 +89,7 @@ function App() {
       <ActionButtons
         startInterval={startInterval}
         stopInterval={stopInterval}
+        clearIntervals={clearIntervals}
       />
     </div>
   );
