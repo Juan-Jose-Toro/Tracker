@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import intervalBgColors  from '../utils/intervalBgColors';
 
 export default function Interval(props) {
   // There should be an easier way to start all this info
@@ -46,16 +47,23 @@ export default function Interval(props) {
   useEffect(() => {
     props.updateIntervalData(props.id, currentTime.getTime(), description);
   }, [props.completed, description, currentTime]) // Fix
+  
+  let bgColor = 'bg-black';
+  for (const key in intervalBgColors) {
+    // console.log(key);
+    const wordSearch = new RegExp(`\\b${key}\\b`, 'i');
+    if (wordSearch.test(description)) bgColor = intervalBgColors[key];
+  }
 
   return (
     <div>
       {props.hasIntialTimer ? initialTime.toLocaleTimeString('en-GB') : ''}
       <div
-        className='bg-black text-white rounded-md flex justify-between py-3 px-4'
+        className={'text-white rounded-md flex justify-between py-3 px-4 ' + bgColor}
         style={{height: `${Math.floor(height/60) + 50}px`}}
       >
         <textarea
-          className='bg-black text-white w-full mr-5 overflow-auto no-scrollbar outline-none resize-none'
+          className='bg-transparent text-white w-full mr-5 overflow-auto no-scrollbar outline-none resize-none'
           onChange={handleChange}
           placeholder="Activity"
           value={description}

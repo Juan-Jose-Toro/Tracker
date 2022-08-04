@@ -2,21 +2,25 @@ import './App.css';
 import { nanoid } from 'nanoid';
 import React, { useState, useEffect } from 'react';
 import Interval from './components/Interval';
-import ActionButtons from './components/ActionButtons'
-import CalendarButtons from './components/CalendarButtons'
+import ActionButtons from './components/ActionButtons';
+import CalendarButtons from './components/CalendarButtons';
+import Graphs from './components/Graphs';
 
 function App() {
+  const [isStats, setIsStats] = useState(false);
   const [curDate, setCurDate] = useState(new Date()); // Change to reflex the current selected date or else it will reset to current date on reload
   const [intervals, setIntervals] = useState(() => {
-    const localData = localStorage.getItem(curDate.toLocaleDateString('en-US')); // encapsulate in function
-    return JSON.parse(localData || '[]');
+    const localIntervals = getDataOnLocalStorage()?.intervals; // encapsulate in function
+    return (localIntervals || []);
   });
-  const [isStop, setStop] = useState(() => {
-    const localIsStop = localStorage.getItem('isStop');
-    return JSON.parse(localIsStop || 'true');
+  const [isStop, setIsStop] = useState(() => {
+    const localIsStop = getDataOnLocalStorage()?.isStop;
+    return (localIsStop === undefined ? true : localIsStop);
   });
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-
+  const [backupTrigger, setBackupTrigger] = useState(0);
+  // Array of time enlapsed on each interval in milliseconds
+  const [categoryPercentages, setCategoryPercentages] = useState({});
 
   function startInterval() {
     const editedIntervals = intervals.map((interval, i, {length}) => {
@@ -36,7 +40,7 @@ function App() {
     };
 
     setIntervals([...editedIntervals, newInterval]);
-    setStop(false);
+    setIsStop(false);
   }
 
   function stopInterval() {
@@ -47,7 +51,7 @@ function App() {
       return interval;
     });
     setIntervals(editedIntervals);
-    setStop(true);
+    setIsStop(true);
   }
 
   function updateIntervalData(id, currentTime, description) {
@@ -62,7 +66,19 @@ function App() {
 
   function clearIntervals() {
     setIntervals([]);
-    setStop(true);
+    setIsStop(true);
+  }
+
+  function getDataOnLocalStorage() {
+    return JSON.parse(localStorage.getItem(curDate.toLocaleDateString('en-US')));
+  }
+
+  function setDataOnLocalStorage() {
+    const localData = {
+      intervals: intervals,
+      isStop: isStop
+    };
+    localStorage.setItem(curDate.toLocaleDateString('en-US'), JSON.stringify(localData));
   }
 
   // date is epoch in ms and returns epoch in ms
@@ -76,31 +92,82 @@ function App() {
 
   function loadPreviousDay() {
     // Save current state
-    localStorage.setItem(curDate.toLocaleDateString('en-US'), JSON.stringify(intervals));
-    localStorage.setItem('isStop', JSON.stringify(isStop));
+    setDataOnLocalStorage();
 
     setCurDate(getYesterdayDate(curDate));
   }
 
   function loadNextDay() {
     // Save current state
-    localStorage.setItem(curDate.toLocaleDateString('en-US'), JSON.stringify(intervals));
-    localStorage.setItem('isStop', JSON.stringify(isStop));
+    setDataOnLocalStorage();
 
     setCurDate(getTomorrowDate(curDate));
   }
 
+  function handleStatView() {
+    // [] -> Clean up this fucntion
+    setIsStats(!isStats);
+    if (isStats) return; // as setIsAnalysics 
+
+    const CATEGORIES = {
+      study: ['react', 'math239'],
+      break: ['break'],
+    };
+
+    let categoryPercentages = {notSet: 0};
+    for (const [category] of Object.entries(CATEGORIES)) {
+      categoryPercentages[category] = 0;
+    }
+
+    const DAYINMS = 864000;
+
+    intervals.forEach(interval => {
+      let isClassified = false;
+      const timeEnlapsed = interval.currentTime - interval.initialTime;
+      for (const [category, keyWords] of Object.entries(CATEGORIES)) {
+        if (// [] -> refactor into its own function
+          keyWords.some(keyWord => {
+            const wordSearch = new RegExp(`\\b${keyWord}\\b`, 'i');
+            return wordSearch.test(interval.description);
+          })
+        ) {
+          categoryPercentages[category] += timeEnlapsed / DAYINMS;
+          isClassified = true;
+          break;
+        }
+      }
+      if (!isClassified) categoryPercentages['notSet'] += timeEnlapsed / DAYINMS;
+    });
+
+    let totalPercentage = 0;
+    Object.values(categoryPercentages).forEach(x => totalPercentage += x);
+    categoryPercentages['remaining'] = 100 - totalPercentage;
+
+    setCategoryPercentages(categoryPercentages);
+  }
+
   useEffect(() => {
-      const localData = localStorage.getItem(curDate.toLocaleDateString('en-US'));
-      setIntervals(JSON.parse(localData || '[]'));
+      // [ ] - I don't understand why this is here, how could I reload the app so that
+      // this already gets executed on start?
+      const localData = getDataOnLocalStorage();
+      setIntervals(localData?.intervals || []);
+      setIsStop(localData?.isStop === undefined ? true : localData?.isStop);
   }, [curDate]);
 
   useEffect(() => {
-    localStorage.setItem(curDate.toLocaleDateString('en-US'), JSON.stringify(intervals));
-    localStorage.setItem('isStop', JSON.stringify(isStop));
+    setDataOnLocalStorage();
   }, [intervals, isStop]); // Could split
 
-
+  // useEffect function to make a backup at midnight
+  useEffect(() => {
+    const today = new Date();
+    const tomorrow = new Date(today.getFullYear(),today.getMonth(),today.getDate()+1);
+    const timer = setTimeout(() => {
+      localStorage.setItem('BACKUP', JSON.stringify(localStorage));
+      setBackupTrigger(backupTrigger + 1); // Reinstantiate timeout for backup
+    }, tomorrow - today);
+    return () => {clearTimeout(timer)}
+  }, [backupTrigger]);
 
   const intervalList = intervals.map((interval) => (
     <Interval 
@@ -114,10 +181,13 @@ function App() {
       updateIntervalData={updateIntervalData}
     />
   ));
-
-  return (
-    <div className="App p-5 max-w-md mx-auto">
-      <h1 className='text-xl'>{curDate.toLocaleDateString('en-US', options)}</h1>
+  
+  const trackerTemplate = (
+    <>
+      <div className='flex justify-between'>
+        <h1 className='text-xl'>{curDate.toLocaleDateString('en-US', options)}</h1>
+        <button className='bg-black text-white rounded-md px-3 py-1' onClick={handleStatView}>Stats</button>
+      </div>
       <CalendarButtons
         loadPreviousDay={loadPreviousDay}
         loadNextDay={loadNextDay}
@@ -128,6 +198,22 @@ function App() {
         stopInterval={stopInterval}
         clearIntervals={clearIntervals}
       />
+    </>
+  );
+
+  const statsTemplate = (
+    <>
+      <div className='flex justify-between'>
+        <h1 className='text-xl'>Statistics</h1>
+        <button className='bg-black text-white rounded-md px-3 py-1' onClick={handleStatView}>Tacker</button>
+      </div>
+      <Graphs categoryPercentages={categoryPercentages}/>
+    </>
+  );
+
+  return (
+    <div className="App p-5 mt-10 max-w-md mx-auto">
+      {isStats ? statsTemplate : trackerTemplate}
     </div>
   );
 }
