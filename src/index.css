@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;400;700&display=swap');
+
+* {
+  font-family: 'Inter', sans-serif;
+}
+
 [contentEditable=true]:empty:before {
   content: attr(placeholder);
   opacity: 0.6;

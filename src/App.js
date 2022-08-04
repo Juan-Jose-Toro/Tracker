@@ -5,6 +5,7 @@ import Interval from './components/Interval';
 import ActionButtons from './components/ActionButtons';
 import CalendarButtons from './components/CalendarButtons';
 import Graphs from './components/Graphs';
+import CATEGORIES from './utils/categories';
 
 function App() {
   const [isStats, setIsStats] = useState(false);
@@ -22,6 +23,7 @@ function App() {
   // Array of time enlapsed on each interval in milliseconds
   const [categoryPercentages, setCategoryPercentages] = useState({});
 
+  // ======================= Interval Management ======================
   function startInterval() {
     const editedIntervals = intervals.map((interval, i, {length}) => {
       if (length - 1 === i) {
@@ -69,6 +71,7 @@ function App() {
     setIsStop(true);
   }
 
+    // ======================= Fetching Data ======================
   function getDataOnLocalStorage() {
     return JSON.parse(localStorage.getItem(curDate.toLocaleDateString('en-US')));
   }
@@ -81,6 +84,7 @@ function App() {
     localStorage.setItem(curDate.toLocaleDateString('en-US'), JSON.stringify(localData));
   }
 
+  // ======================= Data Management ======================
   // date is epoch in ms and returns epoch in ms
   function getYesterdayDate(date) {
     return new Date(new Date(date).getTime() - 24*60*60*1000);
@@ -104,15 +108,11 @@ function App() {
     setCurDate(getTomorrowDate(curDate));
   }
 
+  // ======================= Switch to Stats ======================
   function handleStatView() {
     // [] -> Clean up this fucntion
     setIsStats(!isStats);
     if (isStats) return; // as setIsAnalysics 
-
-    const CATEGORIES = {
-      study: ['react', 'math239'],
-      break: ['break'],
-    };
 
     let categoryPercentages = {notSet: 0};
     for (const [category] of Object.entries(CATEGORIES)) {
@@ -146,6 +146,7 @@ function App() {
     setCategoryPercentages(categoryPercentages);
   }
 
+  // ========================= UseEffects =============================
   useEffect(() => {
       // [ ] - I don't understand why this is here, how could I reload the app so that
       // this already gets executed on start?
@@ -169,6 +170,7 @@ function App() {
     return () => {clearTimeout(timer)}
   }, [backupTrigger]);
 
+  // ==================== Templates & rendering ============================
   const intervalList = intervals.map((interval) => (
     <Interval 
       id={interval.id}
@@ -185,8 +187,8 @@ function App() {
   const trackerTemplate = (
     <>
       <div className='flex justify-between'>
-        <h1 className='text-xl'>{curDate.toLocaleDateString('en-US', options)}</h1>
-        <button className='bg-black text-white rounded-md px-3 py-1' onClick={handleStatView}>Stats</button>
+        <h1 className='text-2xl font-bold'>{curDate.toLocaleDateString('en-US', options)}</h1>
+        <button className='bg-black text-white rounded-md px-3 py-1 h-8' onClick={handleStatView}>Stats</button>
       </div>
       <CalendarButtons
         loadPreviousDay={loadPreviousDay}
@@ -204,8 +206,8 @@ function App() {
   const statsTemplate = (
     <>
       <div className='flex justify-between'>
-        <h1 className='text-xl'>Statistics</h1>
-        <button className='bg-black text-white rounded-md px-3 py-1' onClick={handleStatView}>Tacker</button>
+        <h1 className='text-2xl font-bold'>Statistics</h1>
+        <button className='bg-black text-white rounded-md px-3 py-1 h-8' onClick={handleStatView}>Tacker</button>
       </div>
       <Graphs categoryPercentages={categoryPercentages}/>
     </>

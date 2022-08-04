@@ -48,6 +48,7 @@ export default function Interval(props) {
     props.updateIntervalData(props.id, currentTime.getTime(), description);
   }, [props.completed, description, currentTime]) // Fix
   
+  
   let bgColor = 'bg-black';
   for (const key in intervalBgColors) {
     // console.log(key);

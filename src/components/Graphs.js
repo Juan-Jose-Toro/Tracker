@@ -74,9 +74,9 @@ export default function Graphs(props) {
 
   return (
     <div>
-      <p className='mt-8 text-center'><u>Distribution of day in percentages by category</u></p>
+      <h2 className='mt-2 text-base font-bold'>Distribution of day in percentages by category</h2>
       <Pie className='mx-auto mt-4' data={pieData} options={pieOptions} />
-      <p className='mt-10 text-center'><u>Distribution of time in hours by category</u></p>
+      <h2 className='mt-8 font-bold'>Distribution of time in hours by category</h2>
       <Bar className='mx-auto mt-4' data={barData} options={barOptions} />
     </div>
   );
