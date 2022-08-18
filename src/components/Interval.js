@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import intervalBgColors  from '../utils/intervalBgColors';
+import { ImCross } from 'react-icons/im';
+import { IconContext } from "react-icons";
 
 export default function Interval(props) {
   // There should be an easier way to start all this info
@@ -16,6 +18,9 @@ export default function Interval(props) {
     return `${hours}h${minutes}m`;
   });
   const [height, setHeight] = useState(calculateHeight());
+  const [isHovering, setIsHovering] = useState(false);
+
+  
 
   function handleChange(e) {
     setDescription(e.target.value);
@@ -26,6 +31,10 @@ export default function Interval(props) {
     const currentTime = newTime - initialTime;
     const height = Math.floor(currentTime / 1000);
     return height;
+  }
+
+  function handleDeleteInterval() {
+    props.deleteInterval(props.id);
   }
 
   useEffect(() => {
@@ -51,27 +60,48 @@ export default function Interval(props) {
   
   let bgColor = 'bg-black';
   for (const key in intervalBgColors) {
-    // console.log(key);
     const wordSearch = new RegExp(`\\b${key}\\b`, 'i');
     if (wordSearch.test(description)) bgColor = intervalBgColors[key];
   }
 
+  const redCancelButtonTemplate = (
+    <IconContext.Provider value={{ color: "white", className: "global-class-name" }}>
+      <ImCross className='h-full'/>
+    </IconContext.Provider>
+  );
+
   return (
-    <div>
-      {props.hasIntialTimer ? initialTime.toLocaleTimeString('en-GB') : ''}
+    <div
+      onMouseOver={() => setIsHovering(true)}
+      onMouseOut={() => setIsHovering(false)}
+    >
       <div
-        className={'text-white rounded-md flex justify-between py-3 px-4 ' + bgColor}
-        style={{height: `${Math.floor(height/60) + 50}px`}}
       >
-        <textarea
-          className='bg-transparent text-white w-full mr-5 overflow-auto no-scrollbar outline-none resize-none'
-          onChange={handleChange}
-          placeholder="Activity"
-          value={description}
-        />
-        {enlapsedTimeString}
+        {props.hasIntialTimer ? initialTime.toLocaleTimeString('en-GB') : ''}
+        <div className='relative'>
+          <div
+            className={'text-white rounded-md flex justify-between py-3 px-4 ' + bgColor}
+            style={{height: `${Math.floor(height/60) + 50}px`}}
+          > 
+            <textarea
+              className='bg-transparent text-white w-full mr-5 overflow-auto no-scrollbar outline-none resize-none'
+              onChange={handleChange}
+              placeholder="Activity"
+              value={description}
+            />
+            {enlapsedTimeString}
+          </div>
+          {isHovering && 
+            <div className='h-full absolute top-0 left-[25.5rem]'> 
+              <button className='h-full bg-red-400 rounded-md w-10 ml-1 flex justify-center'
+              onClick={handleDeleteInterval}> {redCancelButtonTemplate}
+              </button>
+            </div>
+          }
+        </div>
+        {currentTime.toLocaleTimeString('en-GB')}
       </div>
-      {currentTime.toLocaleTimeString('en-GB')}
+
     </div>
   );
 }

@@ -71,6 +71,18 @@ function App() {
     setIsStop(true);
   }
 
+  function deleteInterval(id) {
+    let remainingIntervals = intervals.filter((interval, i, arr) => {
+      if (interval.id === id) {
+        if (arr[i+1]) {
+          arr[i+1].hasInitialTimer = true;
+        }
+        return false;
+      } else return true;
+    });
+    setIntervals(remainingIntervals);
+  }
+
     // ======================= Fetching Data ======================
   function getDataOnLocalStorage() {
     return JSON.parse(localStorage.getItem(curDate.toLocaleDateString('en-US')));
@@ -181,6 +193,7 @@ function App() {
       currentTime={interval.currentTime}
       description={interval.description}
       updateIntervalData={updateIntervalData}
+      deleteInterval={deleteInterval}
     />
   ));
   
