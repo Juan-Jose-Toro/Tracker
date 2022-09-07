@@ -240,6 +240,19 @@ function App() {
       window.removeEventListener("keydown", keyDownHandler);
     };
   });
+
+  // useEffect to set unique tab key
+  function removeIsUniqueKey() {
+    localStorage.removeItem("isUnique");
+  }
+
+  useEffect(() => {
+    localStorage.setItem("isUnique", "true");
+    window.addEventListener("beforeunload", removeIsUniqueKey);
+    return () => {
+      window.removeEventListener("beforeunload", removeIsUniqueKey);
+    };
+  });
   // ==================== Templates & rendering ============================
   const intervalList = intervals.map((interval) => (
     <Interval
