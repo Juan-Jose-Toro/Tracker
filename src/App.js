@@ -31,8 +31,9 @@ function App() {
   const [backupTrigger, setBackupTrigger] = useState(0);
   // Array of time enlapsed on each interval in milliseconds
   const [categoryPercentages, setCategoryPercentages] = useState({});
+
   const [isConfigHidden, setIsConfigHidden] = useState(true);
-  const [isConfigOverlay, setIsConfigOverlay] = useState(false);
+  const [isConfigOverlay, setIsConfigOverlay] = useState(false); // [] -> Simplify these two
 
   const categories = useSelector((store) => store.categories);
 
@@ -144,14 +145,6 @@ function App() {
     setCurDate(getTomorrowDate(curDate));
   }
 
-  function keyDownHandler({ key }) {
-    if (key === "ArrowLeft") {
-      loadPreviousDay();
-    } else if (key === "ArrowRight") {
-      loadNextDay();
-    }
-  }
-
   // ======================= Switch views ======================
   function handleStatView() {
     // [] -> Clean up this fucntion
@@ -234,6 +227,16 @@ function App() {
   }, [backupTrigger]);
 
   // Left & Right arrow functionality useEffect
+  function keyDownHandler({ key }) {
+    if (document.activeElement.tagName !== "BODY" || isStats || isConfigOverlay)
+      return;
+    if (key === "ArrowLeft") {
+      loadPreviousDay();
+    } else if (key === "ArrowRight") {
+      loadNextDay();
+    }
+  }
+
   useEffect(() => {
     window.addEventListener("keydown", keyDownHandler);
     return () => {
