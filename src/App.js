@@ -283,7 +283,7 @@ function App() {
         >
           <BsFillGearFill
             className={
-              "absolute w-auto h-full right-[-2.5rem]" +
+              "absolute w-auto h-8 right-[-2.5rem]" +
               (isConfigHidden ? " opacity-0" : " opacity-100")
             }
             onClick={() => handleConfigView(true)}
