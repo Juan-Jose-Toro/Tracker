@@ -64,6 +64,11 @@ export default function Interval(props) {
 
   useEffect(() => {
     props.updateIntervalData(props.id, currentTime.getTime(), description);
+
+    // Stop inverval at midnight
+    if (currentTime.toLocaleTimeString("en-GB") === "00:00:00") {
+      props.stopInverval();
+    }
   }, [props.completed, description, currentTime]); // Fix
 
   let bgColor = "#000";

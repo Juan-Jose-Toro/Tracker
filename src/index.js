@@ -11,8 +11,20 @@ const DATA = [];
 const isUnique = localStorage.getItem("isUnique");
 
 const multipleTabsOpenTemplate = (
-  <div className="h-screen max-w-md mx-auto flex items-center text-lg text-center">
-    🤗 You have another tacker tab open, close all other tabs but one and reload
+  <div>
+    <div className="h-screen max-w-md mx-auto flex flex-col items-center justify-center text-lg text-center">
+      🤗 You have another tacker tab open, close all other tabs but one and
+      reload
+      <button
+        className="bg-red-400 hover:bg-red-500 py-2 px-4 mt-4 rounded-md text-white text-sm"
+        onClick={() => {
+          localStorage.removeItem("isUnique");
+          window.location.reload();
+        }}
+      >
+        Click in case the above doesn't work
+      </button>
+    </div>
   </div>
 );
 

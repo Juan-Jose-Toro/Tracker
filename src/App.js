@@ -268,6 +268,7 @@ function App() {
       description={interval.description}
       updateIntervalData={updateIntervalData}
       deleteInterval={deleteInterval}
+      stopInterval={stopInterval}
     />
   ));
 
