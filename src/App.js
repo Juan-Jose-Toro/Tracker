@@ -245,15 +245,16 @@ function App() {
   });
 
   // useEffect to set unique tab key
-  function removeIsUniqueKey() {
-    localStorage.removeItem("isUnique");
+  function decreaseTabCount() {
+    let tabsOpened = JSON.parse(localStorage.getItem("tabsOpened"));
+    tabsOpened--;
+    localStorage.setItem("tabsOpened", JSON.stringify(tabsOpened));
   }
 
   useEffect(() => {
-    localStorage.setItem("isUnique", "true");
-    window.addEventListener("beforeunload", removeIsUniqueKey);
+    window.addEventListener("beforeunload", decreaseTabCount);
     return () => {
-      window.removeEventListener("beforeunload", removeIsUniqueKey);
+      window.removeEventListener("beforeunload", decreaseTabCount);
     };
   });
   // ==================== Templates & rendering ============================
