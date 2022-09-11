@@ -46,6 +46,7 @@ export default function Interval(props) {
     props.deleteInterval(props.id);
   }
 
+  // useEffect to calculate the height & current time of an interval
   useEffect(() => {
     if (!props.completed) {
       const myInterval = setInterval(() => {
@@ -63,12 +64,18 @@ export default function Interval(props) {
   });
 
   useEffect(() => {
-    props.updateIntervalData(props.id, currentTime.getTime(), description);
+    // Calculate time until midnight and set a timeout
+    const msUntilMidnight = new Date().setHours(24, 0, 0, 0) - Date.now();
+    const stopIntervalAtMidnight = setTimeout(() => {
+      props.stopInterval();
+    }, msUntilMidnight);
+    return () => {
+      clearTimeout(stopIntervalAtMidnight);
+    };
+  });
 
-    // Stop inverval at midnight
-    if (currentTime.toLocaleTimeString("en-GB") === "00:00:00") {
-      props.stopInverval();
-    }
+  useEffect(() => {
+    props.updateIntervalData(props.id, currentTime.getTime(), description);
   }, [props.completed, description, currentTime]); // Fix
 
   let bgColor = "#000";
