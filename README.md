@@ -3,7 +3,6 @@
 This is a time tracking application built in React that helps users identify where are they spending their time.
 
 ![Main View](./images/main.png)
-![Stats View](./images/stats.png)
 
 See the live application at https://juan-jose-toro.github.io/Tracker/
 
