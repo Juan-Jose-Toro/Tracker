@@ -1,4 +1,4 @@
-# # Tacker App
+# Tacker App
 
 This is a time tracking application built in React that helps users identify where are they spending their time.
 
