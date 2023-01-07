@@ -51,10 +51,10 @@ export default function Interval(props) {
     if (!props.completed) {
       const myInterval = setInterval(() => {
         const newTime = new Date();
-        setCurrentTime(newTime);
-        setHeight(height + 1);
-
         const currentTime = newTime - initialTime;
+        setCurrentTime(newTime);
+        setHeight(Math.floor(currentTime / 1000));
+
         const minutes = Math.floor((currentTime / 60000) % 60);
         const hours = Math.floor(currentTime / 3600000);
         setEnlapsedTimeString(`${hours}h${minutes}m`);

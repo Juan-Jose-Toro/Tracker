@@ -11,7 +11,7 @@ const initialState = storedCategories || [
   {
     id: "category-2",
     name: "break",
-    keywords: ["break", "breakfast", "dinner", "factorio"],
+    keywords: ["break", "breakfast", "dinner"],
     color: "#eb4034",
     // color: "bg-gradient-to-br from-pink-500 via-red-500 to-yellow-500",
   },

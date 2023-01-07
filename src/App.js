@@ -8,16 +8,23 @@ import Graphs from "./components/Graphs";
 import { BsFillGearFill } from "react-icons/bs";
 import { IconContext } from "react-icons";
 import Settings from "./components/Settings";
+import Tutorial from "./components/Tutorial";
+
 
 import { useSelector } from "react-redux";
 
 function App() {
+  // isStats defines if the page is showing the stats view
   const [isStats, setIsStats] = useState(false);
-  const [curDate, setCurDate] = useState(new Date()); // Change to reflex the current selected date or else it will reset to current date on reload
+  // curDate stored date of the intervals the user sees, when the page reloads this
+  // resets to the current date
+  const [curDate, setCurDate] = useState(new Date());
   const [intervals, setIntervals] = useState(() => {
     const localIntervals = getDataOnLocalStorage()?.intervals; // encapsulate in function
     return localIntervals || [];
   });
+  // isStop determines if the next interval should display an initial timer above
+  // itself. This is would be needed if the previous interval is paused
   const [isStop, setIsStop] = useState(() => {
     const localIsStop = getDataOnLocalStorage()?.isStop;
     return localIsStop === undefined ? true : localIsStop;
@@ -28,12 +35,13 @@ function App() {
     month: "long",
     day: "numeric",
   };
+  
   const [backupTrigger, setBackupTrigger] = useState(0);
   // Array of time enlapsed on each interval in milliseconds
   const [categoryPercentages, setCategoryPercentages] = useState({});
-
-  const [isConfigHidden, setIsConfigHidden] = useState(true);
+  const [isTutorialOverlay, setIsTutorialOverlay] = useState(false);
   const [isConfigOverlay, setIsConfigOverlay] = useState(false); // [] -> Simplify these two
+  const [isInitialMenuHide, setIsInitialMenuHide] = useState(false);
 
   const categories = useSelector((store) => store.categories);
 
@@ -84,16 +92,24 @@ function App() {
     setIntervals(editedIntervals);
   }
 
+  // clearIntervals() removes all existing intervals. It corresponds to the stop button
+  // on the interface
   function clearIntervals() {
     setIntervals([]);
     setIsStop(true);
   }
 
+  // deleteInverval(id) deletes the interval with id from intervals variable.
+  // If the interval deleted in not the last interval in intervals, it sets the 
+  // next interval to display its initial timer. If the interval deleted is the last
+  // one, then we let the next interval created to have an initial timers
   function deleteInterval(id) {
     let remainingIntervals = intervals.filter((interval, i, arr) => {
       if (interval.id === id) {
         if (arr[i + 1]) {
           arr[i + 1].hasInitialTimer = true;
+        } else if (i === arr.length - 1) {
+          setIsStop(true);
         }
         return false;
       } else return true;
@@ -110,6 +126,8 @@ function App() {
     );
   }
 
+  // setDataOnLocalStorage() stored the current intervals data in localStorage
+  // with a key equivalent to the date the user is looking at curDate
   function setDataOnLocalStorage() {
     const localData = {
       intervals: intervals,
@@ -146,6 +164,10 @@ function App() {
   }
 
   // ======================= Switch views ======================
+
+  // handleStatView() activates the statistics view and calculates the percentage
+  // of time (out of 24h) that has been spent on each category defined by the user.
+  // This information is passed to the Graphs component
   function handleStatView() {
     // [] -> Clean up this fucntion
     setIsStats(!isStats);
@@ -157,15 +179,13 @@ function App() {
     for (const categoryName of categoryNames) {
       categoryPercentages[categoryName] = 0;
     }
-    categoryPercentages["not defined"] = 0;
+    categoryPercentages["not classified"] = 0;
 
     const DAYINMS = 864000;
 
     intervals.forEach((interval) => {
       let isClassified = false;
       const timeEnlapsed = interval.currentTime - interval.initialTime;
-
-      // for (const [category, keyWords] of Object.entries(CATEGORIES)) {
 
       for (const { name: category, keywords } of categories) {
         if (
@@ -180,8 +200,9 @@ function App() {
           break;
         }
       }
-      if (!isClassified)
-        categoryPercentages["not defined"] += timeEnlapsed / DAYINMS;
+      if (!isClassified) {
+        categoryPercentages["not classified"] += timeEnlapsed / DAYINMS;
+      }
     });
 
     // Calculate remaining percentage
@@ -194,6 +215,10 @@ function App() {
 
   function handleConfigView(isConfig) {
     setIsConfigOverlay(isConfig);
+  }
+
+  function handleTutorialView(isTemplate) {
+    setIsTutorialOverlay(isTemplate);
   }
 
   // ========================= UseEffects =============================
@@ -209,7 +234,8 @@ function App() {
     setDataOnLocalStorage();
   }, [intervals, isStop]); // Could split
 
-  // useEffect function to make a backup at midnight
+  // useEffect function to make a backup of all the current information stored in
+  // localStorage expect for the previous BACKUP itself
   useEffect(() => {
     const today = new Date();
     const tomorrow = new Date(
@@ -218,7 +244,10 @@ function App() {
       today.getDate() + 1
     );
     const timer = setTimeout(() => {
-      localStorage.setItem("BACKUP", JSON.stringify(localStorage));
+      let filteredStorage = Object.fromEntries(
+        Object.entries(localStorage).filter(([key, val]) => key !== 'BACKUP')
+      );
+      localStorage.setItem("BACKUP", JSON.stringify(filteredStorage));
       setBackupTrigger(backupTrigger + 1); // Reinstantiate timeout for backup
     }, tomorrow - today);
     return () => {
@@ -244,7 +273,7 @@ function App() {
     };
   });
 
-  // useEffect to set unique tab key
+  // useEffect to avoid the user opening multiple tabs of the app at the same time
   function decreaseTabCount() {
     let tabsOpened = JSON.parse(localStorage.getItem("tabsOpened"));
     tabsOpened--;
@@ -257,6 +286,17 @@ function App() {
       window.removeEventListener("beforeunload", decreaseTabCount);
     };
   });
+
+  // useEffect to hide tutorial and configuration seconds after the page loads
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialMenuHide(true);
+    }, 1000);
+    return () => {
+      clearTimeout(timer);
+    };
+  })
+
   // ==================== Templates & rendering ============================
   const intervalList = intervals.map((interval) => (
     <Interval
@@ -275,14 +315,9 @@ function App() {
 
   const trackerTemplate = (
     <>
+
       <div
         className="flex justify-between relative"
-        onMouseEnter={() => {
-          setIsConfigHidden(false);
-        }}
-        onMouseLeave={() => {
-          setIsConfigHidden(true);
-        }}
       >
         {/* Date, date controls, stats & settings buttons */}
         <h1 className="text-2xl font-bold">
@@ -294,19 +329,6 @@ function App() {
         >
           Stats
         </button>
-
-        {/* Settings button */}
-        <IconContext.Provider
-          value={{ color: "#D3D3D3", className: "global-class-name" }}
-        >
-          <BsFillGearFill
-            className={
-              "absolute w-auto h-8 right-[-2.5rem]" +
-              (isConfigHidden ? " opacity-0" : " opacity-100")
-            }
-            onClick={() => handleConfigView(true)}
-          />
-        </IconContext.Provider>
       </div>
       <CalendarButtons
         loadPreviousDay={loadPreviousDay}
@@ -341,7 +363,25 @@ function App() {
   return (
     <>
       {isConfigOverlay && <Settings handleConfigView={handleConfigView} />}
-      <div className="App p-5 mt-10 max-w-md mx-auto">
+      {isTutorialOverlay && <Tutorial handleTutorialView={setIsTutorialOverlay} />}
+      <div className="App p-5 mt-4 max-w-md mx-auto transition ease-in-out">
+        <div
+          className="flex justify-between items-baseline relative pb-3">
+          {/* Tutorial Button */}
+          <button className={"py-1 h-8 underline hover:opacity-100 transition ease-in-out" + (isInitialMenuHide ? " opacity-0" : "opacity-100") } onClick={() => handleTutorialView(true)}>Tutorial</button>
+          {/* Settings button */}
+          <IconContext.Provider
+            value={{ color: "#000", className: "global-class-name" }}
+          >
+            <BsFillGearFill
+              className={
+                "w-auto h-6 hover:opacity-100 transition ease-in-out"
+                + (isInitialMenuHide ? " opacity-0" : "opacity-100")
+              }
+              onClick={() => handleConfigView(true)}
+            />
+          </IconContext.Provider>
+        </div>
         {isStats ? statsTemplate : trackerTemplate}
       </div>
     </>
