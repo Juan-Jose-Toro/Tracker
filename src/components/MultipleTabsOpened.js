@@ -22,7 +22,7 @@ export default function MultipleTabsOpened(props) {
         <button
           className="bg-red-400 hover:bg-red-500 py-2 px-4 mt-4 rounded-md text-white text-sm"
           onClick={() => {
-            // localStorage.removeItem("tabsOpened");
+            localStorage.removeItem("tabsOpened");
             window.location.reload();
           }}
         >
